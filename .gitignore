@@ -13,6 +13,7 @@ logs/*.log
 .env
 .env.local
 .env.*.local
+config.env
 
 # Build Directories
 dist/
