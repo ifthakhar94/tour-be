@@ -2,7 +2,12 @@ const Tour = require("../models/tourModel");
 
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    // eslint-disable-next-line node/no-unsupported-features/es-syntax
+    const queryObj = { ...req.query };
+    const excludedFields = ["page", "sort", "limit", "fields"];
+    excludedFields.forEach((el) => delete queryObj[el]);
+    const query = await Tour.find(queryObj);
+    const tours = query.slice(0, 10);
     res.status(200).json({
       status: "success",
       results: tours.length,
