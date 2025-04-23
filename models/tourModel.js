@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+// const User = require("./userModel");
 // const slugify = require("slugify");
 // const validator = require("validator");
 
@@ -23,13 +24,13 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       required: [false, "A tour must have a duration"],
       min: [1, "Duration must be at least 1"],
-      max: [10, "Duration must be less than 10"],
+      max: [30, "Duration must be less than 30"],
     },
     maxGroupSize: {
       type: Number,
       required: [false, "A tour must have a group size"],
       min: [1, "Group size must be at least 1"],
-      max: [10, "Group size must be less than 10"],
+      max: [25, "Group size must be less than 25"],
     },
     difficulty: {
       type: String,
@@ -85,7 +86,40 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      type: {
+        type: String,
+        default: "Point",
+        enum: ["Point"],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+      // day: Number,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: "Point",
+          enum: ["Point"],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+
+    ],
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      },
+    ],
+
   },
+
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
@@ -94,9 +128,21 @@ const tourSchema = new mongoose.Schema(
 
 tourSchema.virtual("durationWeeks").get(() => this.duration / 7);
 
+tourSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "tour",
+  localField: "_id",
+});
+
 // tourSchema.pre("save", function (next) {
 //   // this.slug = slugify(this.name, { lower: true });
 //   console.log(this);
+//   next();
+// });
+
+// tourSchema.pre("save", async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
 //   next();
 // });
 
@@ -119,6 +165,14 @@ tourSchema.virtual("durationWeeks").get(() => this.duration / 7);
 //   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
 //   next();
 // });
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "guides",
+    select: "-__v -passwordChangedAt",
+  });
+  next();
+});
 
 const Tour = mongoose.model("Tour", tourSchema);
 

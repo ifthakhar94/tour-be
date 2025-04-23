@@ -14,15 +14,17 @@ mongoose.connect(DB).then(() => console.log("DB connection successful!"));
 
 // READ JSON FILE
 const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/tours-simple.json`, "utf-8"),
+  fs.readFileSync(`${__dirname}/tours.json`, "utf-8"),
 );
 
 // IMPORT DATA INTO DATABASE
 const importData = async () => {
   try {
+    // First delete all existing tours
+    await Tour.deleteMany();
+    // Then create new tours
     await Tour.create(tours);
     console.log("Data successfully loaded!");
-    process.exit();
   } catch (err) {
     console.log(err);
   }
